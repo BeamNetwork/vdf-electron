@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+  </head>
+  <body>
+    <script>
+var request = new XMLHttpRequest();
+request.open('GET', 'http://localtest.me:3000/status', false);
+request.send(null);
+
+console.log(request.status);
+console.log(request.responseText);
+
+    </script>
+    <h1>Hello World!</h1>
+    Bananas
+  </body>
+</html>

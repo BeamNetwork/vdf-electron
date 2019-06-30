@@ -1,0 +1,32 @@
+{
+  "name": "vdf-electron",
+  "version": "1.0.0",
+  "description": "Electron packaging of vdf-solver",
+  "main": "main.js",
+  "scripts": {
+    "lint": "eslint '**/**.js'",
+    "format": "eslint --fix '**/**.js'",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node express.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BeamNetwork/vdf-electron.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BeamNetwork/vdf-electron/issues"
+  },
+  "homepage": "https://github.com/BeamNetwork/vdf-electron#readme",
+  "dependencies": {
+    "electron": "^4.2.5",
+    "express": "^4.17.1",
+    "vdf-solver": "github:BeamNetwork/vdf-solver#master"
+  },
+  "devDependencies": {
+    "eslint": "^6.0.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.18.0"
+  }
+}
