@@ -5,16 +5,44 @@
     <title>Hello World!</title>
   </head>
   <body>
+    <div id="status"></div>
+    <div id="vdflist"></div>
+    <div id="first"></div>
     <script>
-var request = new XMLHttpRequest();
-request.open('GET', 'http://localtest.me:3000/status', false);
+let request;
+
+request = new XMLHttpRequest();
+request.open('GET', 'http://localtest.me:'+location.port+'/status', false);
+request.send(null);
+document.getElementById("status").innerHTML = request.responseText;
+
+const t = JSON.parse(request.responseText).t;
+
+request = new XMLHttpRequest();
+request.open('GET', 'http://localtest.me:'+location.port+'/list', false);
+request.send(null);
+document.getElementById("vdflist").innerHTML = request.responseText;
+
+const list = JSON.parse(request.responseText);
+const first = list[t][0];
+console.log(first);
+
+request = new XMLHttpRequest();
+request.open('GET', 'http://localtest.me:'+location.port+'/vdf/'+t+'/'+list[t][0], false);
+request.send(null);
+document.getElementById("first").innerHTML = request.responseText;
+
+request = new XMLHttpRequest();
+request.open('DELETE', 'http://localtest.me:'+location.port+'/vdf/'+t+'/'+list[t][0], false);
 request.send(null);
 
-console.log(request.status);
-console.log(request.responseText);
+request = new XMLHttpRequest();
+request.open('POST', 'http://localtest.me:'+location.port+'/t', false);
+request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+request.send(JSON.stringify({t: t ^ 1}));
 
     </script>
     <h1>Hello World!</h1>
-    Bananas
+    Hum
   </body>
 </html>

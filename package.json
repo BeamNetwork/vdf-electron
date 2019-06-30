@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/BeamNetwork/vdf-electron#readme",
   "dependencies": {
+    "async-mutex": "^0.1.3",
+    "body-parser": "^1.19.0",
     "electron": "^4.2.5",
     "express": "^4.17.1",
     "vdf-solver": "github:BeamNetwork/vdf-solver#master"
