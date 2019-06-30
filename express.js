@@ -88,15 +88,22 @@ child.on('message', async (m) => {
 
 const app = express();
 const port = 27718;
+const url = `http://lvh.me:${port}`;
+
+app.get('/', (req, res) => res.sendFile(path.join(`${__dirname}/test.html`)));
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', `http://lvh.me:${port}`);
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, DELETE');
-  next();
+  if (req.headers.origin !== url) {
+    res.status(403).send();
+  } else {
+    next();
+  }
 });
 
 app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', url);
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, DELETE');
   res.header('Content-Type', 'application/json');
   next();
 });
@@ -111,7 +118,7 @@ app.get('/status', (req, res) => res.send(JSON.stringify(
   },
 )));
 
-app.get('/list', (req, res) => {
+app.get('/vdf', (req, res) => {
   const reply = {};
   Object.keys(states)
     .map(it => Number.parseInt(it, 10))
@@ -122,51 +129,51 @@ app.get('/list', (req, res) => {
   res.send(JSON.stringify(reply));
 });
 
-app.get('/vdf/:t/:x', (req, res) => {
-  const state = states[req.params.t];
-  if (state) {
-    const [solution] = state.solved.filter(s => s.x === req.params.x);
-    if (solution) {
-      res.send(JSON.stringify({ y: solution.y, u: solution.u }));
-      return;
+app.route('/vdf/:t/:x')
+  .get((req, res) => {
+    const state = states[req.params.t];
+    if (state) {
+      const [solution] = state.solved.filter(s => s.x === req.params.x);
+      if (solution) {
+        res.send(JSON.stringify({ y: solution.y, u: solution.u }));
+        return;
+      }
     }
-  }
-  res.status(404).send();
-});
+    res.status(404).send();
+  })
+  .delete(async (req, res) => {
+    const release = await stateMutex.acquire();
+    const state = states[req.params.t];
 
-app.delete('/vdf/:t/:x', async (req, res) => {
-  const release = await stateMutex.acquire();
-  const state = states[req.params.t];
+    res.status(404);
+    if (state) {
+      const [solution] = state.solved.filter(s => s.x === req.params.x);
+      if (solution) {
+        console.log('Removing solution for', req.params.x, req.params.t);
+        state.solved = state.solved.filter(s => s.x !== req.params.x);
+        await saveState();
+        nextStep();
+        res.status(200);
+      }
+    }
+    release();
+    res.send();
+  });
 
-  res.status(404);
-  if (state) {
-    const [solution] = state.solved.filter(s => s.x === req.params.x);
-    if (solution) {
-      console.log('Removing solution for', req.params.x, req.params.t);
-      state.solved = state.solved.filter(s => s.x !== req.params.x);
+app.route('/t')
+  .get((req, res) => res.send(JSON.stringify(states.t)))
+  .post(async (req, res) => {
+    const release = await stateMutex.acquire();
+    const t = Number.parseInt(req.body.t, 10);
+    if (Number.isInteger(t) && t > 10 && t < 50) {
+      states.t = req.body.t;
       await saveState();
       nextStep();
-      res.status(200);
+      res.send();
+    } else {
+      res.status(404).send();
     }
-  }
-  release();
-  res.send();
-});
-
-app.post('/t', async (req, res) => {
-  const release = await stateMutex.acquire();
-  const t = Number.parseInt(req.body.t, 10);
-  if (Number.isInteger(t) && t > 10 && t < 50) {
-    states.t = req.body.t;
-    await saveState();
-    nextStep();
-    res.send();
-  } else {
-    res.status(404).send();
-  }
-  release();
-});
-
-app.get('/', (req, res) => res.sendFile(path.join(`${__dirname}/test.html`)));
+    release();
+  });
 
 app.listen(port, () => console.log(`Please open http://lvh.me:${port}/`));

@@ -19,7 +19,7 @@ document.getElementById("status").innerHTML = request.responseText;
 const t = JSON.parse(request.responseText).t;
 
 request = new XMLHttpRequest();
-request.open('GET', 'http://localtest.me:'+location.port+'/list', false);
+request.open('GET', 'http://localtest.me:'+location.port+'/vdf', false);
 request.send(null);
 document.getElementById("vdflist").innerHTML = request.responseText;
 
