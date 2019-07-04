@@ -6,7 +6,6 @@
   </head>
   <body>
     <div id="status"></div>
-    <div id="vdflist"></div>
     <div id="first"></div>
     <script>
 let request;
@@ -16,30 +15,27 @@ request.open('GET', 'http://localtest.me:'+location.port+'/status', false);
 request.send(null);
 document.getElementById("status").innerHTML = request.responseText;
 
-const t = JSON.parse(request.responseText).t;
+const s = JSON.parse(request.responseText);
 
 request = new XMLHttpRequest();
-request.open('GET', 'http://localtest.me:'+location.port+'/vdf', false);
+request.open('GET', 'http://localtest.me:'+location.port+'/vdf/'+s.n+'/'+s.t+'/0', false);
 request.send(null);
-document.getElementById("vdflist").innerHTML = request.responseText;
-
-const list = JSON.parse(request.responseText);
-const first = list[t][0];
-console.log(first);
-
-request = new XMLHttpRequest();
-request.open('GET', 'http://localtest.me:'+location.port+'/vdf/'+t+'/'+list[t][0], false);
-request.send(null);
+const v = JSON.parse(request.responseText);
 document.getElementById("first").innerHTML = request.responseText;
 
 request = new XMLHttpRequest();
-request.open('DELETE', 'http://localtest.me:'+location.port+'/vdf/'+t+'/'+list[t][0], false);
+request.open('DELETE', 'http://localtest.me:'+location.port+'/vdf/'+v.n+'/'+v.t+'/'+v.x, false);
 request.send(null);
 
 request = new XMLHttpRequest();
 request.open('POST', 'http://localtest.me:'+location.port+'/t', false);
 request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-request.send(JSON.stringify({t: t ^ 1}));
+request.send(JSON.stringify(s.t ^ 1));
+
+request = new XMLHttpRequest();
+request.open('POST', 'http://localtest.me:'+location.port+'/n', false);
+request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+request.send(JSON.stringify(s.n));
 
     </script>
     <h1>Hello World!</h1>
