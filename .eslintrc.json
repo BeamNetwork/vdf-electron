@@ -1,11 +1,14 @@
 {
   "extends": "airbnb-base",
+  "parser": "babel-eslint",
   "rules": {
     "no-multiple-empty-lines": [ "error", {
       "max": 1,
       "maxEOF": 0,
       "maxBOF": 0
-    }]
+    }],
+    "import/no-extraneous-dependencies": [ "off" ],
+    "no-param-reassign": ["error", { "props": false }]
   },
   "globals": {
     "BigInt": "readonly"

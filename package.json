@@ -1,13 +1,15 @@
 {
   "name": "vdf-electron",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Electron packaging of vdf-solver",
-  "main": "main.js",
+  "main": "app/main.js",
   "scripts": {
+    "postinstall": "electron-builder install-app-deps && electron-rebuild",
     "lint": "eslint '**/**.js'",
     "format": "eslint --fix '**/**.js'",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node express.js"
+    "start": "electron .",
+    "pack": "build --dir",
+    "dist": "build"
   },
   "repository": {
     "type": "git",
@@ -20,15 +22,28 @@
   },
   "homepage": "https://github.com/BeamNetwork/vdf-electron#readme",
   "dependencies": {
-    "async-mutex": "^0.1.3",
     "body-parser": "^1.19.0",
-    "electron": "^4.2.5",
+    "deep-equal": "^1.0.1",
+    "deepcopy": "^2.0.0",
+    "electron-log": "^3.0.6",
+    "electron-updater": "^4.0.14",
+    "emittery": "^0.4.1",
     "express": "^4.17.1",
     "vdf-solver": "github:BeamNetwork/vdf-solver#master"
   },
   "devDependencies": {
+    "babel-eslint": "^10.0.2",
+    "electron": "^5.0.6",
+    "electron-builder": "^20.44.4",
+    "electron-rebuild": "^1.8.5",
     "eslint": "^6.0.1",
-    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.18.0"
+  },
+  "build": {
+    "appId": "io.beam.vdf",
+    "mac": {
+      "category": "public.app-category.finance"
+    }
   }
 }
