@@ -1,7 +1,7 @@
+const electron = require('electron');
 const {
-  app, Menu, Tray, dialog, shell,
+  app, BrowserWindow, ipcMain, Tray, dialog,
 } = require('electron');
-const { version } = require('vdf-solver');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -13,11 +13,9 @@ const deepcopy = require('deepcopy');
 const equal = require('deep-equal');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
+const { port, url } = require('./config.js');
 
 const stateEmitter = new Emittery();
-
-const port = 27718;
-const url = `http://lvh.me:${port}`;
 
 const defn = '0xc7970ceedcc3b0754490201a7aa613cd73911081c790f5f1a8726f463550bb5b7ff0db8e1ea1189ec72f93d1650011bd721aeeacc2acde32a04107f0648c2813a31f5b0b7765ff8b44b4b6ffc93384b646eb09c7cf5e8592d40ea33c80039f35b4f14a04b51f7bfd781be4d1673164ba8eb991c2c4d730bbbe35f592bdef524af7e8daefd26c66fc02c479af89d64d373f442709439de66ceb955f3ea37d5159f6135809f85334b5cb1813addc80cd05609f10ac6a95ad65872c909525bdad32bc729592642920f24c61dc5b3c3b7923e56b16a4d9d373d8721f24a3fc0f1b3131f55615172866bccc30f95054c824e733a5eb6817f7bc16399d48c6361cc7e5';
 
@@ -94,7 +92,7 @@ const initChild = () => {
         } else if (state.solved.length < 10) {
           const x = BigInt(`0x${crypto.randomBytes(32).toString('hex')}`).toString();
           log.info('Pre-generating solution for', states.n, x, states.t);
-          state.working = { x };
+          state.working = { x, progress: 0 };
           child.send({ x, t: states.t, n: states.n });
           waiting = true;
         }
@@ -111,6 +109,11 @@ const initChild = () => {
         states[m.n][m.t].solved.push({ x: m.x, y: m.y, u: m.u });
       } else {
         states[m.n][m.t].working = m;
+        states[m.n][m.t].working.progress = m.step / m.steps;
+
+        const secondsPerStep = Number(BigInt(m.elapsed)) / 1000000000;
+
+        states[m.n][m.t].working.eta = (m.steps - m.step) * secondsPerStep;
       }
     });
   });
@@ -300,43 +303,98 @@ const initExpress = () => {
 };
 
 // Global since otherwise Electron will garbage collect it...
-let appIcon;
+let tray;
+let popup;
 
 // Handle Electron app and updates
 {
   const createTray = () => {
-    const iconPath = path.join(__dirname, process.platform === 'win32' ? 'windows-vdf@2x.png' : 'vdf.png');
-
-    appIcon = new Tray(iconPath);
-    appIcon.setToolTip('VDF Solver');
     if (app.dock) {
       app.dock.hide();
     }
 
-    const contextMenu = Menu.buildFromTemplate([
-      {
-        label: 'VDF Prover',
-        enabled: 'false',
+    popup = new BrowserWindow({
+      width: 250,
+      height: 200,
+      show: false,
+      frame: false,
+      fullscreenable: false,
+      resizable: false,
+      transparent: true,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        backgroundThrottling: false,
       },
-      {
-        label: version()[0],
-        enabled: 'false',
-      },
-      {
-        label: 'Test',
-        click: () => {
-          shell.openExternal(url);
-        },
-      },
-      {
-        label: 'Quit',
-        role: 'quit',
-        click: () => {
-          app.quit();
-        },
-      }]);
+    });
+    popup.loadURL(`file://${path.join(__dirname, 'index.html')}`);
 
-    appIcon.setContextMenu(contextMenu);
+    popup.on('blur', () => {
+      popup.hide();
+    });
+
+    const toggleWindow = (event, bounds) => {
+      if (popup.isVisible()) {
+        popup.hide();
+      } else {
+        const area = electron.screen.getDisplayMatching(bounds).workArea;
+
+        const windowBounds = popup.getBounds();
+        const trayBounds = tray.getBounds();
+
+        const w = windowBounds.width;
+        const h = windowBounds.height;
+
+        let x = Math.round(trayBounds.x + (trayBounds.width / 2) - (w / 2));
+        let y = Math.round(trayBounds.y + (trayBounds.height / 2) - (h / 2));
+
+        const pad = 5;
+
+        // Pull up from bottom
+        if ((y + h) > (area.y + area.height)) {
+          y = area.y + area.height - h - pad;
+        }
+        // Pull out from right
+        if ((x + w) > (area.x + area.width)) {
+          x = area.x + area.width - w - pad;
+        }
+        // Pull down from top
+        if (y < area.y) {
+          y = area.y + pad;
+        }
+        // Put out from left
+        if (x < area.x) {
+          x = area.x + pad;
+        }
+
+        popup.setPosition(x, y, false);
+        popup.show();
+        popup.focus();
+      }
+    };
+
+    stateEmitter.on('stateChanged', (state) => {
+      popup.webContents.send('state', state);
+    });
+
+    ipcMain.on('request-state', (event) => {
+      withStates(
+        s => event.reply('state', s),
+      );
+    });
+
+    const iconPath = path.join(__dirname, process.platform === 'win32' ? 'windows-vdf@2x.png' : 'vdf.png');
+    tray = new Tray(iconPath);
+    tray.setToolTip('VDF Solver');
+
+    tray.on('right-click', () => {
+      toggleWindow();
+
+      if (popup.isVisible() && process.defaultApp) {
+        popup.openDevTools({ mode: 'detach' });
+      }
+    });
+    tray.on('double-click', toggleWindow);
+    tray.on('click', toggleWindow);
 
     loadState();
     initChild();
@@ -355,6 +413,9 @@ let appIcon;
   };
 
   app.on('ready', createTray);
+  app.on('window-all-closed', () => {
+    app.quit();
+  });
 }
 
 log.info('Starting application');

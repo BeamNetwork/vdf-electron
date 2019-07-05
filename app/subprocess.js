@@ -7,9 +7,17 @@ process.on('message', async (m) => {
     x, t, n, state,
   } = m;
 
-  const callback = async (s) => {
+  const start = process.hrtime.bigint();
+
+  const callback = async (s, step, steps) => {
     process.send({
-      x, t, n, state: s,
+      x,
+      t,
+      n,
+      state: s,
+      step,
+      steps,
+      elapsed: (process.hrtime.bigint() - start).toString(),
     });
     return false;
   };
@@ -17,7 +25,12 @@ process.on('message', async (m) => {
   const [y, u] = await prove(x, t, n, callback, state);
   if (y && u) {
     process.send({
-      x, t, n, y: y.toString(), u: u.map(v => v.toString()),
+      x,
+      t,
+      n,
+      y: y.toString(),
+      u: u.map(v => v.toString()),
+      elapsed: (process.hrtime.bigint() - start).toString(),
     });
   }
 });

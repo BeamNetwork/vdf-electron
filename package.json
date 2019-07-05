@@ -1,6 +1,6 @@
 {
   "name": "vdf-electron",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Electron packaging of vdf-solver",
   "main": "app/main.js",
   "scripts": {
