@@ -66,8 +66,8 @@ const initChild = () => {
 
   const child = fork(path.join(__dirname, 'subprocess.js'));
 
-  child.on('close', (code) => {
-    log.info('child exited', code);
+  child.on('error', (error) => {
+    log.info('child error', error);
     dialog.showErrorBox('Background solver failed', 'The VDF solver failed to execute');
     app.quit();
   });
@@ -403,15 +403,17 @@ let popup;
 
     autoUpdater.logger = log;
     autoUpdater.logger.transports.file.level = 'info';
-    try {
-      autoUpdater.checkForUpdatesAndNotify();
-    } catch (e) {
-      log.warn('Autoupdate failed', e);
-    }
 
     log.info('Application ready');
   };
 
+  app.on('ready', async () => {
+    try {
+      await autoUpdater.checkForUpdatesAndNotify();
+    } catch (e) {
+      log.warn('Autoupdate failed', e);
+    }
+  });
   app.on('ready', createTray);
   app.on('window-all-closed', () => {
     app.quit();
