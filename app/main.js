@@ -386,8 +386,8 @@ let popup;
     tray = new Tray(iconPath);
     tray.setToolTip('VDF Solver');
 
-    tray.on('right-click', () => {
-      toggleWindow();
+    tray.on('right-click', (event, bounds) => {
+      toggleWindow(event, bounds);
 
       if (popup.isVisible() && process.defaultApp) {
         popup.openDevTools({ mode: 'detach' });
