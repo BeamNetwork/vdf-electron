@@ -22,6 +22,8 @@
   },
   "homepage": "https://github.com/BeamNetwork/vdf-electron#readme",
   "dependencies": {
+    "backtrace-js": "^0.0.11",
+    "backtrace-node": "^1.0.3",
     "body-parser": "^1.19.0",
     "deep-equal": "^1.0.1",
     "deepcopy": "^2.0.0",

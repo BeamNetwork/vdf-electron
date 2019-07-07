@@ -1,3 +1,20 @@
+const { crashReporter } = require('electron');
+
+crashReporter.start({
+  productName: 'vdf-electron',
+  companyName: 'beam',
+  submitURL: 'https://submit.backtrace.io/beam/d025334b0dc61e8c62bb3863b3ee13cc837ff24b684c82d17f9027c03e03a3c4/minidump',
+  uploadToServer: true,
+});
+
+const backtrace = require('backtrace-node');
+
+backtrace.initialize({
+  endpoint: 'https://submit.backtrace.io/beam/d025334b0dc61e8c62bb3863b3ee13cc837ff24b684c82d17f9027c03e03a3c4/json',
+  token: 'd025334b0dc61e8c62bb3863b3ee13cc837ff24b684c82d17f9027c03e03a3c4',
+  handlePromises: true,
+});
+
 const electron = require('electron');
 const {
   app, BrowserWindow, ipcMain, Tray, dialog,
