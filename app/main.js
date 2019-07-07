@@ -26,7 +26,9 @@ let loadState;
 {
   // This contains the current working parameters as well as previously solved VDFs
   // It is shared between the express handlers and the subprocess handlers.
-  let states = { t: 21, n: BigInt(defn).toString() };
+  const defOrigins = {};
+  defOrigins[url] = true;
+  let states = { t: 21, n: BigInt(defn).toString(), origins: defOrigins };
 
   const statefile = path.join(app.getPath('userData'), 'states.json');
   const statefileTmp = path.join(app.getPath('userData'), 'states.tmp');
@@ -125,16 +127,36 @@ const initExpress = () => {
   eApp.get('/', (req, res) => res.sendFile(path.join(__dirname, 'test.html')));
 
   eApp.use((req, res, next) => {
-    if (req.headers.origin !== url) {
-      //      res.status(403).send();
+    withStates((states) => {
+      req.states = states;
+      next();
+    });
+  });
+
+  eApp.use((req, res, next) => {
+    if (!req.states.origins) {
+      req.states.origins = {};
+    }
+    if (req.headers.origin && req.states.origins[req.headers.origin] === undefined) {
+      const reply = dialog.showMessageBox({
+        type: 'warning',
+        buttons: ['Yes', 'No'],
+        title: 'VDF Electron',
+        message: `Request from ${req.headers.origin}`,
+        detail: `A website from ${req.headers.origin} is currently trying to access VDFs. Do you wish to allow this?`,
+        defaultId: 1,
+      });
+      req.states.origins[req.headers.origin] = (reply === 0);
+    }
+    if (req.states.origins[req.headers.origin]) {
       next();
     } else {
-      next();
+      res.status(404).send();
     }
   });
 
   eApp.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', url);
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, DELETE');
     res.header('Content-Type', 'application/json');
@@ -142,13 +164,6 @@ const initExpress = () => {
   });
 
   eApp.use(bodyParser.json({ strict: false }));
-
-  eApp.use((req, res, next) => {
-    withStates((states) => {
-      req.states = states;
-      next();
-    });
-  });
 
   eApp.get('/status', (req, res) => {
     const { states } = req;
@@ -379,6 +394,14 @@ let popup;
     ipcMain.on('request-state', (event) => {
       withStates(
         s => event.reply('state', s),
+      );
+    });
+
+    ipcMain.on('reset-state', () => {
+      withStates(
+        (s) => {
+          s.origins = {};
+        },
       );
     });
 
