@@ -5,6 +5,7 @@ const { url } = require('./config.js');
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('test').addEventListener('click', () => shell.openExternal(url));
+  document.getElementById('reset').addEventListener('click', () => ipcRenderer.send('reset-state'));
 
   ipcRenderer.on('state', (ev, s) => {
     const { t } = s;
