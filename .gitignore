@@ -63,3 +63,5 @@ typings/
 *~
 states.json
 dist/
+
+sentry.properties

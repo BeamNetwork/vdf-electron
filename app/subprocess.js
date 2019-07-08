@@ -1,5 +1,9 @@
 /* Worker process for proving VDFs */
 
+const Sentry = require('@sentry/node');
+
+Sentry.init({ dsn: 'https://b995c76c5330419eb0a5402c4e2bd1f3@sentry.io/1498967' });
+
 const { prove } = require('vdf-solver');
 
 process.on('message', async (m) => {
