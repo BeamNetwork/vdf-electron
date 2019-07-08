@@ -1,3 +1,7 @@
+const Sentry = require('@sentry/electron');
+
+Sentry.init({ dsn: 'https://b995c76c5330419eb0a5402c4e2bd1f3@sentry.io/1498967' });
+
 const electron = require('electron');
 const {
   app, BrowserWindow, ipcMain, Tray, dialog,
@@ -70,8 +74,16 @@ const initChild = () => {
 
   child.on('error', (error) => {
     log.info('child error', error);
-    dialog.showErrorBox('Background solver failed', 'The VDF solver failed to execute');
+    dialog.showErrorBox('Background solver failed', `The VDF solver failed to execute: ${error}`);
     app.quit();
+  });
+
+  child.on('exit', (code) => {
+    if (code !== 0) {
+      log.info('child exit', code);
+      dialog.showErrorBox('Background solver failed', 'The VDF solver unexpectedly quit');
+      app.quit();
+    }
   });
 
   stateEmitter.on('stateChanged', () => {

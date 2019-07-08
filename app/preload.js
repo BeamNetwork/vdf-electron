@@ -1,5 +1,9 @@
 /* eslint-env node, browser */
 
+const Sentry = require('@sentry/electron');
+
+Sentry.init({ dsn: 'https://b995c76c5330419eb0a5402c4e2bd1f3@sentry.io/1498967' });
+
 const { ipcRenderer, shell } = require('electron');
 const { url } = require('./config.js');
 
