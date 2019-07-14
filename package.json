@@ -1,6 +1,6 @@
 {
   "name": "vdf-electron",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Electron packaging of vdf-solver",
   "main": "app/main.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "lint": "eslint '**/**.js'",
     "format": "eslint --fix '**/**.js'",
     "start": "electron .",
-    "pack": "build --dir",
-    "dist": "build"
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
     "deep-equal": "^1.0.1",
     "deepcopy": "^2.0.0",
     "electron-log": "^3.0.6",
-    "electron-updater": "^4.0.14",
+    "electron-updater": "^4.1.2",
     "emittery": "^0.4.1",
     "express": "^4.17.1",
     "vdf-solver": "github:BeamNetwork/vdf-solver#master"
@@ -37,7 +37,7 @@
     "@sentry/cli": "^1.46.0",
     "babel-eslint": "^10.0.2",
     "electron": "^5.0.6",
-    "electron-builder": "^20.44.4",
+    "electron-builder": "^21.0.15",
     "electron-download": "^4.1.1",
     "electron-rebuild": "^1.8.5",
     "eslint": "^6.0.1",
