@@ -16,6 +16,7 @@ const Emittery = require('emittery');
 const deepcopy = require('deepcopy');
 const equal = require('deep-equal');
 const log = require('electron-log');
+const bigInt = require('big-integer');
 const { autoUpdater } = require('electron-updater');
 const { port, url } = require('./config.js');
 
@@ -104,7 +105,12 @@ const initChild = () => {
           });
           waiting = true;
         } else if (state.solved.length < 10) {
-          const x = BigInt(`0x${crypto.randomBytes(32).toString('hex')}`).toString();
+          let x;
+          do {
+            // eslint-disable-next-line no-bitwise
+            x = BigInt(`0x${crypto.randomBytes(32).toString('hex')}`) | 1n;
+          } while (!bigInt(x).isProbablePrime(30));
+          x = x.toString();
           log.info('Pre-generating solution for', states.n, x, states.t);
           state.working = { x, progress: 0 };
           child.send({ x, t: states.t, n: states.n });
