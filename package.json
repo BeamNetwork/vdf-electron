@@ -31,7 +31,7 @@
     "electron-log": "^3.0.8",
     "electron-updater": "^4.1.2",
     "emittery": "^0.5.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "vdf-solver": "github:eco/vdf-solver#master"
   },
   "devDependencies": {
